@@ -37,6 +37,21 @@ const users = [
 //   }
 // });
 
+// app.post('/register', (req, res) => {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   const { username, password } = req.body;
+
+//   const user = users.find(
+//     (u) => u.username === username && u.password === password
+//   );
+
+//   if (user) {
+//     res.json({ message: 'Inicio de sesión exitoso' });
+//   } else {
+//     res.status(401).json({ message: 'Credenciales inválidas' });
+//   }
+// });
+
 app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -71,20 +86,42 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.post('/register', (req, res) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  const { username, password } = req.body;
+app.post('/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
 
-  const user = users.find(
-    (u) => u.username === username && u.password === password
-  );
+    // Crear una nueva conexión a la base de datos
+    const pool = await sql.connect(dbConfig);
 
-  if (user) {
-    res.json({ message: 'Inicio de sesión exitoso' });
-  } else {
-    res.status(401).json({ message: 'Credenciales inválidas' });
+    // Verificar si el usuario ya existe en la base de datos
+    const existingUser = await pool
+      .request()
+      .input('username', sql.NVarChar, username)
+      .query('SELECT * FROM Users WHERE name = @username');
+
+    if (existingUser.recordset.length > 0) {
+      return res.status(400).json({ error: 'El usuario ya existe' });
+    }
+
+    // Insertar el nuevo usuario en la base de datos
+    await pool
+      .request()
+      .input('username', sql.NVarChar, username)
+      .input('password', sql.NVarChar, password)
+      .query('INSERT INTO Users (name, password) VALUES (@username, @password)');
+
+    // Cerrar la conexión a la base de datos
+    await pool.close();
+
+    // Enviar respuesta exitosa
+    res.json({ message: 'Registro exitoso' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al acceder a la base de datos' });
   }
 });
+
+
 
 app.listen(port, () => {
   console.log(`Servidor en funcionamiento en http://localhost:${port}`);
