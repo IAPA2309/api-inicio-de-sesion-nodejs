@@ -59,6 +59,12 @@ app.post('/login', async (req, res) => {
     // Crear una nueva conexión a la base de datos
     const pool = await sql.connect(dbConfig);
 
+    // Verificar campos vacíos
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Nombre de usuario y contraseña son obligatorios' });
+    }
+    
+
     // Realizar una consulta para obtener el usuario por nombre de usuario
     const result = await pool
       .request()
@@ -92,6 +98,11 @@ app.post('/register', async (req, res) => {
 
     // Crear una nueva conexión a la base de datos
     const pool = await sql.connect(dbConfig);
+
+    // Verificar campos vacíos
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Nombre de usuario y contraseña son obligatorios' });
+    }    
 
     // Verificar si el usuario ya existe en la base de datos
     const existingUser = await pool
