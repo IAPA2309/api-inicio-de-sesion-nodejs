@@ -56,7 +56,6 @@ app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Crear una nueva conexión a la base de datos
     const pool = await sql.connect(dbConfig);
 
     // Verificar campos vacíos
@@ -65,7 +64,6 @@ app.post('/login', async (req, res) => {
     }
     
 
-    // Realizar una consulta para obtener el usuario por nombre de usuario
     const result = await pool
       .request()
       .input('username', sql.NVarChar, username)
@@ -75,16 +73,13 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Usuario no encontrado' });
     }
 
-    // Verificar la contraseña (esto asume que la contraseña está almacenada de manera segura en la base de datos)
     const storedPassword = result.recordset[0].password; 
     if (storedPassword !== password) {
       return res.status(401).json({ error: 'Contraseña incorrecta' });
     }
 
-    // Cerrar la conexión a la base de datos
     await pool.close();
 
-    // Enviar respuesta exitosa
     res.json({ message: 'Inicio de sesión exitoso' });
   } catch (error) {
     console.error(error);
@@ -96,7 +91,6 @@ app.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Crear una nueva conexión a la base de datos
     const pool = await sql.connect(dbConfig);
 
     // Verificar campos vacíos
@@ -114,17 +108,14 @@ app.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'El usuario ya existe' });
     }
 
-    // Insertar el nuevo usuario en la base de datos
     await pool
       .request()
       .input('username', sql.NVarChar, username)
       .input('password', sql.NVarChar, password)
       .query('INSERT INTO Users (name, password) VALUES (@username, @password)');
 
-    // Cerrar la conexión a la base de datos
     await pool.close();
 
-    // Enviar respuesta exitosa
     res.json({ message: 'Registro exitoso' });
   } catch (error) {
     console.error(error);
