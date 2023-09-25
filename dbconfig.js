@@ -1,7 +1,7 @@
 const config = {
     user: 'usuario',
     password: 'usuario',
-    server: 'A-PHZ2-AMI-010',
+    server: 'RYZEN7-3700X\\SQLEXPRESS',
     database: 'usuarios',
     options: {
         trustServerCertificate: true,
